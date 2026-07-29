@@ -1,0 +1,84 @@
+{
+  "info": {
+    "name": "URL Shortener API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create URL",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalUrl\": \"https://example.com\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/urls",
+          "host": ["http://localhost:8080"],
+          "path": ["api", "urls"]
+        }
+      }
+    },
+    {
+      "name": "List URLs",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:8080/api/urls",
+          "host": ["http://localhost:8080"],
+          "path": ["api", "urls"]
+        }
+      }
+    },
+    {
+      "name": "Get URL by ID",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:8080/api/urls/1",
+          "host": ["http://localhost:8080"],
+          "path": ["api", "urls", "1"]
+        }
+      }
+    },
+    {
+      "name": "Delete URL by ID",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "http://localhost:8080/api/urls/1",
+          "host": ["http://localhost:8080"],
+          "path": ["api", "urls", "1"]
+        }
+      }
+    },
+    {
+      "name": "Resolve URL",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:8080/api/urls/abc123",
+          "host": ["http://localhost:8080"],
+          "path": ["api", "urls", "abc123"]
+        }
+      }
+    },
+    {
+      "name": "Get Analytics",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:8080/api/urls/analytics",
+          "host": ["http://localhost:8080"],
+          "path": ["api", "urls", "analytics"]
+        }
+      }
+    }
+  ]
+}
