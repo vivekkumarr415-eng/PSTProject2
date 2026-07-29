@@ -1,8 +1,10 @@
 package com.example.urlshortener.service.impl;
 
+import com.example.urlshortener.dto.AnalyticsResponse;
 import com.example.urlshortener.dto.CreateUrlRequest;
 import com.example.urlshortener.dto.CreateUrlResponse;
 import com.example.urlshortener.dto.RedirectUrlResponse;
+import com.example.urlshortener.dto.ShortUrlSummaryResponse;
 import com.example.urlshortener.entity.ShortUrlEntity;
 import com.example.urlshortener.exception.InvalidUrlException;
 import com.example.urlshortener.exception.ShortUrlNotFoundException;
@@ -15,7 +17,9 @@ import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +63,45 @@ public class ShortUrlServiceImpl implements ShortUrlService {
         response.setOriginalUrl(entity.getOriginalUrl());
         response.setClickCount(entity.getClickCount());
         response.setLastAccessedAt(entity.getLastAccessedAt().toString());
+        return response;
+    }
+
+    @Override
+    public List<ShortUrlSummaryResponse> listAll(String baseUrl) {
+        return shortUrlRepository.findAll().stream()
+                .map(entity -> shortUrlMapper.toSummary(entity, baseUrl))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ShortUrlSummaryResponse getById(Long id, String baseUrl) {
+        ShortUrlEntity entity = shortUrlRepository.findById(id)
+                .orElseThrow(() -> new ShortUrlNotFoundException("Short URL not found"));
+        return shortUrlMapper.toSummary(entity, baseUrl);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        ShortUrlEntity entity = shortUrlRepository.findById(id)
+                .orElseThrow(() -> new ShortUrlNotFoundException("Short URL not found"));
+        shortUrlRepository.delete(entity);
+    }
+
+    @Override
+    public AnalyticsResponse getAnalytics(String baseUrl) {
+        LocalDateTime now = LocalDateTime.now();
+        long totalUrls = shortUrlRepository.count();
+        long activeUrls = shortUrlRepository.countByExpiresAtIsNullOrExpiresAtAfter(now);
+        long expiredUrls = totalUrls - activeUrls;
+
+        AnalyticsResponse response = new AnalyticsResponse();
+        response.setTotalUrls(totalUrls);
+        response.setActiveUrls(activeUrls);
+        response.setExpiredUrls(expiredUrls);
+        response.setMostClicked(shortUrlRepository.findActiveOrderByClickCountDesc(now).stream()
+                .limit(5)
+                .map(entity -> shortUrlMapper.toSummary(entity, baseUrl))
+                .collect(Collectors.toList()));
         return response;
     }
 

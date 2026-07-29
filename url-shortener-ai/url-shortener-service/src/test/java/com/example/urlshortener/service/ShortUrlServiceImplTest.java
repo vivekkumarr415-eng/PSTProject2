@@ -1,7 +1,9 @@
 package com.example.urlshortener.service;
 
+import com.example.urlshortener.dto.AnalyticsResponse;
 import com.example.urlshortener.dto.CreateUrlRequest;
 import com.example.urlshortener.dto.CreateUrlResponse;
+import com.example.urlshortener.dto.ShortUrlSummaryResponse;
 import com.example.urlshortener.entity.ShortUrlEntity;
 import com.example.urlshortener.exception.InvalidUrlException;
 import com.example.urlshortener.mapper.ShortUrlMapper;
@@ -13,6 +15,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -66,5 +71,56 @@ class ShortUrlServiceImplTest {
         request.setOriginalUrl("not-a-valid-url");
 
         assertThrows(InvalidUrlException.class, () -> shortUrlService.create(request, "http://localhost"));
+    }
+
+    @Test
+    void shouldListUrls() {
+        ShortUrlEntity entity = new ShortUrlEntity();
+        entity.setId(1L);
+        entity.setShortCode("abc123");
+        entity.setOriginalUrl("https://example.com");
+
+        ShortUrlSummaryResponse summary = new ShortUrlSummaryResponse();
+        summary.setShortCode("abc123");
+
+        when(shortUrlRepository.findAll()).thenReturn(List.of(entity));
+        when(shortUrlMapper.toSummary(entity, "http://localhost")).thenReturn(summary);
+
+        List<ShortUrlSummaryResponse> result = shortUrlService.listAll("http://localhost");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getShortCode()).isEqualTo("abc123");
+    }
+
+    @Test
+    void shouldGetAndDeleteUrlById() {
+        ShortUrlEntity entity = new ShortUrlEntity();
+        entity.setId(1L);
+        entity.setShortCode("abc123");
+
+        ShortUrlSummaryResponse summary = new ShortUrlSummaryResponse();
+        summary.setShortCode("abc123");
+
+        when(shortUrlRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(shortUrlMapper.toSummary(entity, "http://localhost")).thenReturn(summary);
+
+        ShortUrlSummaryResponse result = shortUrlService.getById(1L, "http://localhost");
+        shortUrlService.deleteById(1L);
+
+        assertThat(result.getShortCode()).isEqualTo("abc123");
+        verify(shortUrlRepository).delete(entity);
+    }
+
+    @Test
+    void shouldBuildAnalyticsResponse() {
+        when(shortUrlRepository.count()).thenReturn(3L);
+        when(shortUrlRepository.countByExpiresAtIsNullOrExpiresAtAfter(any())).thenReturn(2L);
+        when(shortUrlRepository.findActiveOrderByClickCountDesc(any())).thenReturn(List.of());
+
+        AnalyticsResponse response = shortUrlService.getAnalytics("http://localhost");
+
+        assertThat(response.getTotalUrls()).isEqualTo(3L);
+        assertThat(response.getActiveUrls()).isEqualTo(2L);
+        assertThat(response.getExpiredUrls()).isEqualTo(1L);
     }
 }
