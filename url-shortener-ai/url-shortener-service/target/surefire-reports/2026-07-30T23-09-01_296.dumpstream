@@ -1,0 +1,5 @@
+# Created at 2026-07-30T23:09:01.813
+Boot Manifest-JAR contains absolute paths in classpath 'D:\PST PRoject\Vivek 2\PSTProject2\url-shortener-ai\url-shortener-service\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+

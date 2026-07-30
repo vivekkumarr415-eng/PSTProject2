@@ -1,5 +1,7 @@
 package com.example.urlshortener.controller;
 
+import com.example.urlshortener.config.ApiKeyFilter;
+import com.example.urlshortener.config.SecurityProperties;
 import com.example.urlshortener.dto.AnalyticsResponse;
 import com.example.urlshortener.dto.CreateUrlRequest;
 import com.example.urlshortener.dto.CreateUrlResponse;
@@ -8,9 +10,10 @@ import com.example.urlshortener.dto.ShortUrlSummaryResponse;
 import com.example.urlshortener.service.ShortUrlService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -25,13 +28,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ShortUrlController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class ShortUrlControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @MockBean
     private ShortUrlService shortUrlService;
+
+    @MockBean
+    private ApiKeyFilter apiKeyFilter;
+
+    @MockBean
+    private SecurityProperties securityProperties;
 
     @Test
     void shouldCreateShortUrl() throws Exception {
@@ -58,7 +68,7 @@ class ShortUrlControllerTest {
 
         when(shortUrlService.resolve("abc123")).thenReturn(response);
 
-        mockMvc.perform(get("/api/urls/abc123"))
+        mockMvc.perform(get("/api/urls/resolve/abc123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.originalUrl").value("https://example.com"));

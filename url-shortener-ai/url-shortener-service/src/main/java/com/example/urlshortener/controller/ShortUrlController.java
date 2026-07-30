@@ -57,7 +57,7 @@ public class ShortUrlController {
         return ResponseEntity.ok(new ApiResponse<>(true, "URL deleted successfully", null));
     }
 
-    @GetMapping("/{shortCode}")
+    @GetMapping("/resolve/{shortCode}")
     public ResponseEntity<ApiResponse<RedirectUrlResponse>> resolveUrl(@PathVariable String shortCode) {
         RedirectUrlResponse payload = shortUrlService.resolve(shortCode);
         return ResponseEntity.ok(new ApiResponse<>(true, "URL resolved successfully", payload));
